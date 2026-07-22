@@ -1,6 +1,6 @@
 [build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.backends._legacy:_Backend"
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "inkling-fa4-triton"
@@ -10,7 +10,6 @@ requires-python = ">=3.10"
 dependencies = [
     "torch>=2.0",
     "triton>=3.0",
-    "pytest",
 ]
 
 [tool.setuptools.packages.find]
