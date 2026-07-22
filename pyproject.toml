@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[project]
+name = "inkling-fa4-triton"
+version = "0.1.0"
+description = "Triton implementation of Inkling FA4 Relative Attention"
+requires-python = ">=3.10"
+dependencies = [
+    "torch>=2.0",
+    "triton>=3.0",
+    "pytest",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
