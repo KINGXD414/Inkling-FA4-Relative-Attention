@@ -54,7 +54,7 @@ def _fa4_rel_attn_decode_kernel(
         mask=off_d < head_dim, other=0.0
     ).to(tl.float16)
 
-    scale = 1.0 / tl.sqrt(tl.full([1], head_dim, dtype=tl.float16))
+    scale = (1.0 / tl.sqrt(tl.full([1], head_dim, dtype=tl.float32))).to(tl.float16)
 
     # --- online softmax (single-row) ---
     m_i = -float("inf")
