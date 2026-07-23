@@ -113,7 +113,7 @@ def _fa4_rel_attn_decode_kernel(
             mask=(off_k[:, None] < k_tile_sz) & (off_d[None, :] < head_dim),
             other=0.0
         ).to(tl.float16)
-        acc = acc + tl.sum(p[:, None].to(tl.float16) * v, axis=0).to(tl.float32)
+        acc = acc + tl.dot(p[None, :].to(tl.float16), v.to(tl.float16))[0].to(tl.float32)
         l_i = l_i + l_ij
         m_i = m_new
 
