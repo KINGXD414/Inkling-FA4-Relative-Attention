@@ -75,7 +75,7 @@ def get_preset(seq_len: int, arch: str | None = None) -> dict:
     default = arch_presets["default"]
     buckets = arch_presets.get("buckets", [])
 
-    for threshold, bq, bk, nw, ns in reversed(buckets):
+    for threshold, bq, bk, nw, ns in buckets:
         if seq_len <= threshold:
             return {"BLOCK_Q": bq, "BLOCK_K": bk,
                     "num_warps": nw, "num_stages": ns}
