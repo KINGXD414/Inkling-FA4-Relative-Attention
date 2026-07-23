@@ -1,6 +1,7 @@
 import torch
 import triton
 import triton.language as tl
+from inkling_fa4 import autotune_configs
 
 @triton.jit
 def _fa4_rel_attn_prefill_kernel(
@@ -84,19 +85,23 @@ def _fa4_rel_attn_prefill_kernel(
 def inkling_fa4_rel_attention_triton(q, k, v, rel_logits, cu_seqlens_q, cu_seqlens_k,
                                       max_seqlen_q, max_seqlen_k, rel_extent,
                                       causal=True, window_size=(-1, -1),
-                                      n_heads=None, kv_heads=None, head_dim=128):
+                                      n_heads=None, kv_heads=None, head_dim=128,
+                                      arch=None):
     if n_heads is None: n_heads = q.shape[1]
     if kv_heads is None: kv_heads = k.shape[1]
     out = torch.empty_like(q)
     batch = cu_seqlens_q.shape[0] - 1
     for seq_id in range(batch):
         q_len = int(cu_seqlens_q[seq_id + 1] - cu_seqlens_q[seq_id])
-        grid = (n_heads, triton.cdiv(q_len, 32))
+        cfg = autotune_configs.get_preset(q_len, arch=arch)
+        grid = (n_heads, triton.cdiv(q_len, cfg["BLOCK_Q"]))
         _fa4_rel_attn_prefill_kernel[grid](
             q, k, v, rel_logits, out, cu_seqlens_q, cu_seqlens_k,
             q.stride(0), q.stride(1), k.stride(0), k.stride(1),
             v.stride(0), v.stride(1), rel_logits.stride(0), rel_logits.stride(1),
             out.stride(0), out.stride(1),
-            seq_id, n_heads, kv_heads, head_dim, rel_extent, 32, 64,
-            CAUSAL=causal, WINDOW_LEFT=window_size[0])
+            seq_id, n_heads, kv_heads, head_dim, rel_extent,
+            cfg["BLOCK_Q"], cfg["BLOCK_K"],
+            CAUSAL=causal, WINDOW_LEFT=window_size[0],
+            num_warps=cfg["num_warps"], num_stages=cfg["num_stages"])
     return out
